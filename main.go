@@ -5,7 +5,11 @@ import (
 )
 
 func main()  {
-	SetupWriter()
-	StartChrome()
-	StartCrawler()
+	// example 1
+	//SetupWriter()
+	//StartChrome()
+	//StartCrawler()
+
+	// example2
+	StartLoopCrawler()
 }
