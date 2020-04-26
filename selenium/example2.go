@@ -5,6 +5,7 @@ import (
 	"github.com/tebeka/selenium"
 	"github.com/tebeka/selenium/chrome"
 	"log"
+	"net"
 	"strings"
 	"time"
 )
@@ -16,6 +17,24 @@ var (
 	keywords = []string{"龙湖大境天成", "龙湖首开湖西星辰", "九龙仓翠樾庭", "中骏云景台", "碧桂园伴山澜湾", "阳光城檀苑", "苏州恒大悦珑湾", "鲁能公馆", "中骏天荟", "中交路劲璞玥风华", "蔚蓝四季花园", "天房美瑜兰庭", "苏悦湾", "明发江湾新城", "南山楠", "九龙仓天曦", "中铁诺德姑苏上府", "中粮天悦悦茏雅苑", "姑苏金茂悦", "恒大珺睿庭", "阳光城平江悦", "高铁新城朗诗蔚蓝广场", "金科仁恒浅棠平江", "金辉姑苏铭著", "江南沄著", "保利天樾人家", "当代蘇洲府", "东原千浔", "九龙仓天灏", "中南滨江铂郡", "中旅运河名著", "城仕高尔夫", "融信海月平江", "首开金茂熙悦", "洛克公园", "绿景苏州公馆", "新城十里锦绣", "万科公园大道", "苏州万和悦花园", "宽泰铂园", "正荣香山麓院", "泉山39", "和昌紫竹云山墅", "万泽太湖庄园", "柳岸晓风", "弘阳上熙名苑", "上海浦西玫瑰园", "绿都苏和雅集", "银城原溪"}
 	//keywords = []string{"恒大林溪郡"}
 )
+
+// 获取本地未使用的端口号
+func PickUnusedPort() (int, error) {
+	addr, err := net.ResolveTCPAddr("tcp", "127.0.0.1:0")
+	if err != nil {
+		return 0, err
+	}
+
+	l, err := net.ListenTCP("tcp", addr)
+	if err != nil {
+		return 0, err
+	}
+	port := l.Addr().(*net.TCPAddr).Port
+	if err := l.Close(); err != nil {
+		return 0, err
+	}
+	return port, nil
+}
 
 func StartLoopCrawler() {
 	StartChromeBrowser()
@@ -123,6 +142,7 @@ func StartChromeBrowser() {
 		"browserName": "chrome",
 	}
 
+	// 配置chrome浏览器基础能力
 	chromeCaps := chrome.Capabilities{
 		Path: "",
 		Args: []string{
@@ -132,6 +152,15 @@ func StartChromeBrowser() {
 		},
 	}
 	caps.AddChrome(chromeCaps)
+
+	// 添加代理
+	chromeProxy := selenium.Proxy{
+		Type: selenium.Manual,
+		HTTP: "45.159.75.71",
+		HTTPPort: 8080,
+	}
+	caps.AddProxy(chromeProxy)
+
 	// 启动chromedriver，端口号可自定义
 	var err error
 	sv, err = selenium.NewChromeDriverService("C:\\Program Files (x86)\\Google\\Chrome\\Application\\chromedriver", 9515, opts...)
