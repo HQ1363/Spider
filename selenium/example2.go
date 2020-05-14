@@ -6,6 +6,7 @@ import (
 	"github.com/tebeka/selenium/chrome"
 	"log"
 	"net"
+	"runtime/debug"
 	"strings"
 	"time"
 )
@@ -36,7 +37,18 @@ func PickUnusedPort() (int, error) {
 	return port, nil
 }
 
-func StartLoopCrawler() {
+func StartLoopCrawler(runFlag chan bool) {
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Println("some error has occurred, info: ", r)
+			debug.PrintStack()
+			if val, ok := <- runFlag; ok {
+				runFlag <- val
+			} else {
+				runFlag <- false
+			}
+		}
+	}()
 	StartChromeBrowser()
 	log.Println("Start Crawling at ", time.Now().Format("2006-01-02 15:04:05"))
 	for _, keyword := range keywords {
@@ -45,6 +57,7 @@ func StartLoopCrawler() {
 	log.Println("Crawling Finished at ", time.Now().Format("2006-01-02 15:04:05"))
 	defer sv.Stop() // 停止chromedriver
 	defer wd.Quit() // 关闭浏览器
+	runFlag <- true
 }
 
 // StartCrawler 开始爬取数据
