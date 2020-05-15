@@ -174,15 +174,21 @@ func StartChromeBrowser() {
 	}
 	caps.AddProxy(chromeProxy)
 
-	// 启动chromedriver，端口号可自定义
-	var err error
-	sv, err = selenium.NewChromeDriverService("C:\\Program Files (x86)\\Google\\Chrome\\Application\\chromedriver", 9515, opts...)
-	if err != nil {
-		log.Printf("Error starting the ChromeDriver server: %v", err)
-	}
-	// 调起chrome浏览器
-	wd, err = selenium.NewRemote(caps, fmt.Sprintf("http://localhost:%d/wd/hub", 9515))
-	if err != nil {
+	if port, err := PickUnusedPort(); err != nil {
+		fmt.Println("generate new port error: ", err.Error())
 		panic(err)
+	} else {
+		fmt.Println("use port: ", port)
+		// 启动chromedriver，端口号可自定义
+		var err error
+		sv, err = selenium.NewChromeDriverService("C:\\Program Files (x86)\\Google\\Chrome\\Application\\chromedriver", port, opts...)
+		if err != nil {
+			log.Printf("Error starting the ChromeDriver server: %v", err)
+		}
+		// 调起chrome浏览器
+		wd, err = selenium.NewRemote(caps, fmt.Sprintf("http://localhost:%d/wd/hub", port))
+		if err != nil {
+			panic(err)
+		}
 	}
 }

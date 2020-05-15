@@ -17,11 +17,6 @@ func main()  {
 	//StartCrawler()
 
 	// example2
-	//if port, err := PickUnusedPort(); err != nil {
-	//	fmt.Println(err.Error())
-	//} else {
-	//	fmt.Println(port)
-	//}
 	defer func() {
 		if r := recover(); r != nil {
 			fmt.Println("some error has occurred, info: ", r)
