@@ -2,6 +2,7 @@ package colly
 
 import (
 	"fmt"
+	"github.com/axgle/mahonia"
 	"github.com/gocolly/colly/v2"
 	"github.com/gocolly/colly/v2/debug"
 	_ "github.com/gocolly/colly/v2/proxy"
@@ -12,6 +13,15 @@ import (
 	"os"
 	"time"
 )
+
+func ConvertToString(src string, srcCode string, tagCode string) string {
+	srcCoder := mahonia.NewDecoder(srcCode)
+	srcResult := srcCoder.ConvertString(src)
+	tagCoder := mahonia.NewDecoder(tagCode)
+	_, cdata, _ := tagCoder.Translate([]byte(srcResult), true)
+	result := string(cdata)
+	return result
+}
 
 // colly + goquery 爬虫利器
 // 考虑下分布式的问题
@@ -26,81 +36,81 @@ var (
 			"city_name": "苏州",
 			"city_url":  "https://suzhou.newhouse.fang.com/house/s/",
 		},
-		{
-			"city_abbr": "wx",
-			"city_name": "无锡",
-			"city_url":  "https://wuxi.newhouse.fang.com/house/s/",
-		},
-		{
-			"city_abbr": "zhjg",
-			"city_name": "张家港",
-			"city_url":  "https://zjg.newhouse.fang.com/house/s/",
-		},
-		{
-			"city_abbr": "chss",
-			"city_name": "常熟",
-			"city_url":  "https://changshu.newhouse.fang.com/house/s/",
-		},
-		{
-			"city_abbr": "ks",
-			"city_name": "昆山",
-			"city_url":  "https://ks.newhouse.fang.com/house/s/",
-		},
-		{
-			"city_abbr": "yix",
-			"city_name": "宜兴",
-			"city_url":  "https://yixing.newhouse.fang.com/house/s/",
-		},
-		{
-			"city_abbr": "jiangy",
-			"city_name": "江阴",
-			"city_url":  "https://jy.newhouse.fang.com/house/s/",
-		},
-		{
-			"city_abbr": "taic",
-			"city_name": "太仓",
-			"city_url":  "https://tc.newhouse.fang.com/house/s/",
-		},
-		{
-			"city_abbr": "nt",
-			"city_name": "南通",
-			"city_url":  "https://nt.newhouse.fang.com/house/s/",
-		},
-		{
-			"city_abbr": "hu",
-			"city_name": "湖州",
-			"city_url":  "https://huzhou.newhouse.fang.com/house/s/",
-		},
-		{
-			"city_abbr": "zj",
-			"city_name": "镇江",
-			"city_url":  "https://zhenjiang.newhouse.fang.com/house/s/",
-		},
-		{
-			"city_abbr": "jx",
-			"city_name": "嘉兴",
-			"city_url":  "https://jx.newhouse.fang.com/house/s/",
-		},
-		{
-			"city_abbr": "yizh",
-			"city_name": "仪征",
-			"city_url":  "https://yizheng.newhouse.fang.com/house/s/",
-		},
-		{
-			"city_abbr": "sh",
-			"city_name": "上海",
-			"city_url":  "https://sh.newhouse.fang.com/house/s/",
-		},
-		{
-			"city_abbr": "tz",
-			"city_name": "泰州",
-			"city_url":  "https://taizhou.newhouse.fang.com/house/s/",
-		},
-		{
-			"city_abbr": "km",
-			"city_name": "昆明",
-			"city_url":  "https://km.newhouse.fang.com/house/s/",
-		},
+		//{
+		//	"city_abbr": "wx",
+		//	"city_name": "无锡",
+		//	"city_url":  "https://wuxi.newhouse.fang.com/house/s/",
+		//},
+		//{
+		//	"city_abbr": "zhjg",
+		//	"city_name": "张家港",
+		//	"city_url":  "https://zjg.newhouse.fang.com/house/s/",
+		//},
+		//{
+		//	"city_abbr": "chss",
+		//	"city_name": "常熟",
+		//	"city_url":  "https://changshu.newhouse.fang.com/house/s/",
+		//},
+		//{
+		//	"city_abbr": "ks",
+		//	"city_name": "昆山",
+		//	"city_url":  "https://ks.newhouse.fang.com/house/s/",
+		//},
+		//{
+		//	"city_abbr": "yix",
+		//	"city_name": "宜兴",
+		//	"city_url":  "https://yixing.newhouse.fang.com/house/s/",
+		//},
+		//{
+		//	"city_abbr": "jiangy",
+		//	"city_name": "江阴",
+		//	"city_url":  "https://jy.newhouse.fang.com/house/s/",
+		//},
+		//{
+		//	"city_abbr": "taic",
+		//	"city_name": "太仓",
+		//	"city_url":  "https://tc.newhouse.fang.com/house/s/",
+		//},
+		//{
+		//	"city_abbr": "nt",
+		//	"city_name": "南通",
+		//	"city_url":  "https://nt.newhouse.fang.com/house/s/",
+		//},
+		//{
+		//	"city_abbr": "hu",
+		//	"city_name": "湖州",
+		//	"city_url":  "https://huzhou.newhouse.fang.com/house/s/",
+		//},
+		//{
+		//	"city_abbr": "zj",
+		//	"city_name": "镇江",
+		//	"city_url":  "https://zhenjiang.newhouse.fang.com/house/s/",
+		//},
+		//{
+		//	"city_abbr": "jx",
+		//	"city_name": "嘉兴",
+		//	"city_url":  "https://jx.newhouse.fang.com/house/s/",
+		//},
+		//{
+		//	"city_abbr": "yizh",
+		//	"city_name": "仪征",
+		//	"city_url":  "https://yizheng.newhouse.fang.com/house/s/",
+		//},
+		//{
+		//	"city_abbr": "sh",
+		//	"city_name": "上海",
+		//	"city_url":  "https://sh.newhouse.fang.com/house/s/",
+		//},
+		//{
+		//	"city_abbr": "tz",
+		//	"city_name": "泰州",
+		//	"city_url":  "https://taizhou.newhouse.fang.com/house/s/",
+		//},
+		//{
+		//	"city_abbr": "km",
+		//	"city_name": "昆明",
+		//	"city_url":  "https://km.newhouse.fang.com/house/s/",
+		//},
 	}
 )
 
@@ -130,7 +140,7 @@ func dealWithPagination() {
 	fmt.Println("处理分页问题")
 }
 
-func main() {
+func StartCrawlerHtmlPage() {
 	writer, err := os.OpenFile("../collector.log", os.O_RDWR|os.O_CREATE, 0666)
 	if err != nil {
 		panic(err)
@@ -139,11 +149,12 @@ func main() {
 	// Instantiate default collector
 	c := colly.NewCollector(
 		// Visit only domains: hackerspaces.org, wiki.hackerspaces.org
-		colly.AllowedDomains("newhouse.fang.com", "fang.com"),
-		colly.Async(true),
-		colly.UserAgent("Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.87 Safari/537.36"),
+		//colly.AllowedDomains("*.newhouse.fang.com", "newhouse.fang.com", "fang.com"),
+		colly.Async(false),
+		colly.UserAgent(RandomString()),
 		colly.Debugger(&debug.LogDebugger{Output: writer}),
 		colly.MaxDepth(2),
+		colly.AllowURLRevisit(),
 	)
 
 	c.SetRedirectHandler(func(req *http.Request, via []*http.Request) error {
@@ -178,23 +189,27 @@ func main() {
 	})
 
 	// Limit the number of threads started by colly to two
-	_ = c.Limit(&colly.LimitRule{
-		DomainGlob:  "*anjuke.*",
-		Parallelism: 5000,
-		//Delay:      5 * time.Second,
-	})
+	//_ = c.Limit(&colly.LimitRule{
+	//	DomainGlob:  "*anjuke.*",
+	//	Parallelism: 5000,
+	//})
 
 	// 这里的是否访问过的逻辑重写了
 	c.AllowURLRevisit = true
 
 	// On every a element which has href attribute call callback
-	c.OnHTML("a[href]", func(e *colly.HTMLElement) {
-		link := e.Attr("href")
+	c.OnHTML("div[class=nhouse_list]", func(e *colly.HTMLElement) {
+		fmt.Println("find house list dom")
+		e.ForEach("div>ul>li", func(_ int, element *colly.HTMLElement) {
+			houseDetailPageUrl := element.ChildAttr("div.clearfix > div:nth-child(2) > div:first-child > div:first-child a", "href")
+			houseName := element.ChildText("div.clearfix > div:nth-child(2) > div:first-child > div:first-child a")
+			fmt.Println("find house: ", ConvertToString(houseName, "gbk", "utf-8"), ", Url: ", e.Request.AbsoluteURL(houseDetailPageUrl))
+		})
 		// Print link
-		fmt.Printf("Link found: %q -> %s\n", e.Text, link)
+		//fmt.Printf("Link found: %q -> %s\n", e.Text, link)
 		// Visit link found on page
 		// Only those links are visited which are in AllowedDomains
-		_ = c.Visit(e.Request.AbsoluteURL(link))
+		//_ = c.Visit(e.Request.AbsoluteURL(link))
 	})
 
 	// Before making a request print "Visiting ..."
@@ -245,6 +260,12 @@ func main() {
 	//	courses = append(courses, course)
 	//})
 
-	// Start scraping on https://hackerspaces.org
-	_ = c.Visit("https://hackerspaces.org/")
+	// start scraping on each city
+	for _, city := range cityList {
+		fmt.Println("visit url: ", city["city_url"])
+		time.Sleep(time.Second * 1)
+		if err := c.Visit(city["city_url"]); err != nil {
+			fmt.Println(err.Error())
+		}
+	}
 }
