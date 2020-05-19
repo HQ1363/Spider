@@ -6,11 +6,13 @@ import (
 	"github.com/gocolly/colly/v2"
 	"github.com/gocolly/colly/v2/debug"
 	_ "github.com/gocolly/colly/v2/proxy"
+	"log"
 	_ "log"
 	"math/rand"
 	"net"
 	"net/http"
 	"os"
+	"spider/utils"
 	"time"
 )
 
@@ -112,6 +114,7 @@ var (
 		//	"city_url":  "https://km.newhouse.fang.com/house/s/",
 		//},
 	}
+	needDownPageList = []string{"楼盘详情", "楼盘动态", "楼盘点评", "房价走势"}
 )
 
 const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -157,6 +160,9 @@ func StartCrawlerHtmlPage() {
 		colly.AllowURLRevisit(),
 	)
 
+	// Create another collector to scrape course details
+	detailCollector := c.Clone()
+
 	c.SetRedirectHandler(func(req *http.Request, via []*http.Request) error {
 		// log.Println(len(via), 111, req.URL.String(), 222, via[0].URL.String())
 
@@ -197,21 +203,6 @@ func StartCrawlerHtmlPage() {
 	// 这里的是否访问过的逻辑重写了
 	c.AllowURLRevisit = true
 
-	// On every a element which has href attribute call callback
-	c.OnHTML("div[class=nhouse_list]", func(e *colly.HTMLElement) {
-		fmt.Println("find house list dom")
-		e.ForEach("div>ul>li", func(_ int, element *colly.HTMLElement) {
-			houseDetailPageUrl := element.ChildAttr("div.clearfix > div:nth-child(2) > div:first-child > div:first-child a", "href")
-			houseName := element.ChildText("div.clearfix > div:nth-child(2) > div:first-child > div:first-child a")
-			fmt.Println("find house: ", ConvertToString(houseName, "gbk", "utf-8"), ", Url: ", e.Request.AbsoluteURL(houseDetailPageUrl))
-		})
-		// Print link
-		//fmt.Printf("Link found: %q -> %s\n", e.Text, link)
-		// Visit link found on page
-		// Only those links are visited which are in AllowedDomains
-		//_ = c.Visit(e.Request.AbsoluteURL(link))
-	})
-
 	// Before making a request print "Visiting ..."
 	c.OnRequest(func(r *colly.Request) {
 		// 动态更新user-agent信息
@@ -225,40 +216,34 @@ func StartCrawlerHtmlPage() {
 		// 此处可能要考虑切换代理
 	})
 
-	// Create another collector to scrape course details
-	//detailCollector := c.Clone()
+	// On every a element which has href attribute call callback
+	c.OnHTML("div[class=nhouse_list]", func(e *colly.HTMLElement) {
+		//fmt.Println("find house list dom")
+		e.ForEach("div>ul>li", func(_ int, element *colly.HTMLElement) {
+			houseDetailPageUrl := element.ChildAttr("div.clearfix > div:nth-child(2) > div:first-child > div:first-child a", "href")
+			houseName := element.ChildText("div.clearfix > div:nth-child(2) > div:first-child > div:first-child a")
+			fmt.Println("find house: ", ConvertToString(houseName, "gbk", "utf-8"), ", Url: ", e.Request.AbsoluteURL(houseDetailPageUrl))
+			// Only those links are visited which are in AllowedDomains
+			// Visit link found on page
+			if detailErr := detailCollector.Visit(e.Request.AbsoluteURL(houseDetailPageUrl)); detailErr != nil {
+				fmt.Println("visitor detail page failure, ", detailErr.Error())
+			}
+		})
+	})
 
 	// Extract details of the course
-	//detailCollector.OnHTML(`div[id=rendered-content]`, func(e *colly.HTMLElement) {
-	//	log.Println("Course found", e.Request.URL)
-	//	title := e.ChildText(".course-title")
-	//	if title == "" {
-	//		log.Println("No title found", e.Request.URL)
-	//	}
-	//	course := Course{
-	//		Title:       title,
-	//		URL:         e.Request.URL.String(),
-	//		Description: e.ChildText("div.content"),
-	//		Creator:     e.ChildText("div.creator-names > span"),
-	//	}
-	//	// Iterate over rows of the table which contains different information
-	//	// about the course
-	//	e.ForEach("table.basic-info-table tr", func(_ int, el *colly.HTMLElement) {
-	//		switch el.ChildText("td:first-child") {
-	//		case "Language":
-	//			course.Language = el.ChildText("td:nth-child(2)")
-	//		case "Level":
-	//			course.Level = el.ChildText("td:nth-child(2)")
-	//		case "Commitment":
-	//			course.Commitment = el.ChildText("td:nth-child(2)")
-	//		case "How To Pass":
-	//			course.HowToPass = el.ChildText("td:nth-child(2)")
-	//		case "User Ratings":
-	//			course.Rating = el.ChildText("td:nth-child(2) div:nth-of-type(2)")
-	//		}
-	//	})
-	//	courses = append(courses, course)
-	//})
+	detailCollector.OnHTML(`div[id=header-wrap]`, func(e *colly.HTMLElement) {
+		log.Println("top nav found", e.Request.URL)
+		e.ForEach("div[id=orginalNaviBox] a", func(_ int, el *colly.HTMLElement) {
+			downUrl := e.Request.AbsoluteURL(el.Attr("href"))
+			downName := ConvertToString(el.Text, "gbk", "utf-8")
+			if utils.InList(downName, needDownPageList) {
+				fmt.Println("start download page: ", downName, ", Url: ", downUrl)
+			} else {
+				fmt.Println("skip page: ", downName, ", url: ", downUrl)
+			}
+		})
+	})
 
 	// start scraping on each city
 	for _, city := range cityList {
