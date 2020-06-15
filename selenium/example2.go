@@ -37,7 +37,7 @@ func PickUnusedPort() (int, error) {
 	return port, nil
 }
 
-func StartLoopCrawler(runFlag chan bool) {
+func StartLoopCrawler(runFlag chan bool, platform string) {
 	defer func() {
 		if r := recover(); r != nil {
 			fmt.Println("some error has occurred, info: ", r)
@@ -52,7 +52,7 @@ func StartLoopCrawler(runFlag chan bool) {
 	StartChromeBrowser()
 	log.Println("Start Crawling at ", time.Now().Format("2006-01-02 15:04:05"))
 	for _, keyword := range keywords {
-		StartCrawlerBDAds(keyword)
+		StartCrawlerBDAds(keyword, platform)
 	}
 	log.Println("Crawling Finished at ", time.Now().Format("2006-01-02 15:04:05"))
 	defer sv.Stop() // 停止chromedriver
@@ -61,88 +61,249 @@ func StartLoopCrawler(runFlag chan bool) {
 }
 
 // StartCrawler 开始爬取数据
-func StartCrawlerBDAds(keyword string) {
+func StartCrawlerBDAds(keyword, platform string) {
 	// 导航到目标网站
-	err := wd.Get(fmt.Sprintf(urlBaidu, keyword))
-	if err != nil {
-		panic(fmt.Sprintf("Failed to load page: %s\n", err))
-	}
-	log.Println(wd.Title())
-	leftContent, err := wd.FindElement(selenium.ByXPATH, "//*[@id=\"content_left\"]")
-	if err != nil {
-		panic(err)
-	}
-	lists, err := leftContent.FindElements(selenium.ByXPATH, "//div[@id>3000]")
-	if err != nil {
-		panic(err)
-	}
-	log.Println("推广总数：", len(lists))
-	for i := 0; i < len(lists); i++ {
-		title, err := lists[i].Text()
-		log.Printf("正在浏览第%d个房源数据(%s)...\n", i+1, title)
-
-		urlElem, err := lists[i].FindElement(selenium.ByXPATH, "div[1]/h3/a")
+	if platform == "pc" {
+		// computer
+		err := wd.Get(fmt.Sprintf(urlBaidu, keyword))
 		if err != nil {
-			fmt.Println(err.Error())
-			break
+			panic(fmt.Sprintf("Failed to load page: %s\n", err))
 		}
-		//url, err := urlElem.GetAttribute("href")
-		//if err != nil {
-		//	break
-		//}
-		//fmt.Println("url:", url)
+		log.Println(wd.Title())
+		leftContent, err := wd.FindElement(selenium.ByXPATH, "//*[@id=\"content_left\"]")
+		if err != nil {
+			panic(err)
+		}
+		lists, err := leftContent.FindElements(selenium.ByXPATH, "//div[@id>3000]")
+		if err != nil {
+			panic(err)
+		}
+		log.Println("推广总数：", len(lists))
+		for i := 0; i < len(lists); i++ {
+			title, err := lists[i].Text()
+			log.Printf("正在浏览第%d个房源数据(%s)...\n", i+1, title)
 
-		if domainUrlElem, err := lists[i].FindElement(selenium.ByXPATH, "div[2]/div/div[2]/div[2]/a|div[3]/a"); domainUrlElem != nil && err == nil {
-			if domainText, domainErr := domainUrlElem.Text(); domainErr == nil {
-				fmt.Println("domainText: ", domainText)
-				if strings.Contains(domainText, "yuanhaowang") || strings.Contains(domainText, "xunkyz") || strings.Contains(domainText, "源浩网") || strings.Contains(domainText, "讯客驿站") {
-					continue
+			urlElem, err := lists[i].FindElement(selenium.ByXPATH, "div[1]/h3/a")
+			if err != nil {
+				fmt.Println(err.Error())
+				break
+			}
+			//url, err := urlElem.GetAttribute("href")
+			//if err != nil {
+			//	break
+			//}
+			//fmt.Println("url:", url)
+
+			if domainUrlElem, err := lists[i].FindElement(selenium.ByXPATH, "div[2]/div/div[2]/div[2]/a|div[3]/a"); domainUrlElem != nil && err == nil {
+				if domainText, domainErr := domainUrlElem.Text(); domainErr == nil {
+					fmt.Println("domainText: ", domainText)
+					if strings.Contains(domainText, "yuanhaowang") || strings.Contains(domainText, "xunkyz") || strings.Contains(domainText, "源浩网") || strings.Contains(domainText, "讯客驿站") {
+						continue
+					}
 				}
 			}
-		}
 
-		if err = urlElem.Click(); err != nil {
-			fmt.Println(err.Error())
-		}
-
-		time.Sleep(time.Second * 3)
-		winHandlers, err := wd.WindowHandles()
-		if err != nil {
-			fmt.Println(err.Error())
-		}
-		fmt.Println("winHandlers: ", winHandlers)
-		currentUrl, err := wd.CurrentURL()
-		fmt.Printf("before currnetUrl: %s\n", currentUrl)
-		if len(winHandlers) > 1 {
-			// 切换到新窗口
-			_ = wd.SwitchWindow(winHandlers[1])
-
-			currentUrl, err = wd.CurrentURL()
-			fmt.Printf("after currnetUrl: %s\n", currentUrl)
-			// 窗口2上下滑动
-			if err = wd.KeyDown(selenium.EndKey); err != nil {
+			if err = urlElem.Click(); err != nil {
 				fmt.Println(err.Error())
 			}
-			for j := 0; j < 4; j++ {
-				time.Sleep(time.Second * 1)
-				if err = wd.KeyDown(selenium.PageUpKey); err != nil {
-					fmt.Println(err.Error())
-				}
-			}
 
-			// 关闭窗口2，回到窗口1
-			if err = wd.CloseWindow(winHandlers[1]); err != nil {
+			time.Sleep(time.Second * 3)
+			winHandlers, err := wd.WindowHandles()
+			if err != nil {
 				fmt.Println(err.Error())
 			}
-			_ = wd.SwitchWindow(winHandlers[0])
-			for j := 0; j < 4; j++ {
-				time.Sleep(time.Second * 1)
-				if err = wd.KeyDown(selenium.PageUpKey); err != nil {
+			fmt.Println("winHandlers: ", winHandlers)
+			currentUrl, err := wd.CurrentURL()
+			fmt.Printf("before currnetUrl: %s\n", currentUrl)
+			if len(winHandlers) > 1 {
+				// 切换到新窗口
+				_ = wd.SwitchWindow(winHandlers[1])
+
+				currentUrl, err = wd.CurrentURL()
+				fmt.Printf("after currnetUrl: %s\n", currentUrl)
+				// 窗口2上下滑动
+				if err = wd.KeyDown(selenium.EndKey); err != nil {
 					fmt.Println(err.Error())
 				}
+				for j := 0; j < 4; j++ {
+					time.Sleep(time.Second * 1)
+					if err = wd.KeyDown(selenium.PageUpKey); err != nil {
+						fmt.Println(err.Error())
+					}
+				}
+
+				// 关闭窗口2，回到窗口1
+				if err = wd.CloseWindow(winHandlers[1]); err != nil {
+					fmt.Println(err.Error())
+				}
+				_ = wd.SwitchWindow(winHandlers[0])
+				for j := 0; j < 4; j++ {
+					time.Sleep(time.Second * 1)
+					if err = wd.KeyDown(selenium.PageUpKey); err != nil {
+						fmt.Println(err.Error())
+					}
+				}
+			} else {
+				fmt.Println("未打开窗口2")
 			}
-		} else {
-			fmt.Println("未打开窗口2")
+		}
+	} else {
+		// mobile
+		urlBaidu = "https://m.baidu.com/ssid=1e66c7bfc8cdb7bdb8d5923a/s?word=%s&ts=0560332&t_kt=0&ie=utf-8&rsv_iqid=0143329303&rsv_t=1e761b%252FKbYacV8vfqun%252FNd3QBZMaBUoaWpmI82tHgIwpOHEDlwuP&sa=ib&rsv_pq=0143329303&rsv_sug4=1032&ss=010&inputT=77&tj=1"
+		err := wd.Get(fmt.Sprintf(urlBaidu, keyword))
+		if err != nil {
+			panic(fmt.Sprintf("Failed to load page: %s\n", err))
+		}
+		log.Println(wd.Title())
+		houseResourceList, err := wd.FindElements(selenium.ByXPATH, "//*[@class=\"c-result-content\"]/article")
+		if err != nil {
+			panic(fmt.Sprintf("query article list failure: %s\n ", err.Error()))
+		}
+		log.Println("可能的推荐房源总数：", len(houseResourceList))
+		for _, article := range houseResourceList {
+			title, err := article.FindElement(selenium.ByXPATH, "header")
+			if title == nil || err != nil {
+				fmt.Println("get resource title failure")
+				continue
+			}
+			if titleText, err := title.Text(); err != nil {
+				fmt.Println("get resource title failure, ", err.Error())
+			} else {
+				fmt.Println("resource title: ", titleText)
+			}
+			footer, err := article.FindElement(selenium.ByXPATH, "footer")
+			if footer == nil {
+				// 如果没找到footer节点，以为是其他结构的房源信息
+				if section, err := article.FindElement(selenium.ByXPATH, "section"); err != nil {
+					fmt.Println(err.Error())
+				} else {
+					sectionText, sectionErr := section.FindElement(selenium.ByXPATH, "div[last()]/span[@class=\"c-color-gray\"]|div[last()]")
+					if sectionText == nil {
+						fmt.Println("get section text failure")
+					}
+					if sectionErr != nil {
+						fmt.Println(sectionErr.Error())
+					}
+					if sectionText != nil {
+						if sectionTextName, sectionTextErr := sectionText.Text(); sectionTextErr != nil {
+							fmt.Println("get resource title failure, ", sectionTextErr.Error())
+						} else {
+							fmt.Println("get resource section title: ", sectionTextName)
+							// 检查名称是否需要过滤
+
+							articleDetailUrl, articleDetailErr := article.GetAttribute("rl-link-href")
+							if articleDetailErr != nil {
+								fmt.Println("articleDetailErr", articleDetailErr.Error())
+							} else {
+								fmt.Println(articleDetailUrl)
+
+								beforeSessionId := wd.SessionID()
+
+								sessionId, sessionErr := wd.NewSession()
+								if sessionErr != nil {
+									fmt.Println("sessionErr", sessionErr.Error())
+								}
+								switchSessionErr := wd.SwitchSession(sessionId)
+								if switchSessionErr != nil {
+									fmt.Println("switchSessionErr", switchSessionErr.Error())
+								}
+								visitDetailPageErr := wd.Get(articleDetailUrl)
+								if visitDetailPageErr != nil {
+									fmt.Println(visitDetailPageErr.Error())
+								} else {
+									time.Sleep(time.Second * 3)
+									currentUrl, err := wd.CurrentURL()
+									fmt.Printf("currnet detail page Url: %s\n", currentUrl)
+									// 窗口2上下滑动
+									if err = wd.KeyDown(selenium.EndKey); err != nil {
+										fmt.Println(err.Error())
+									}
+									for j := 0; j < 4; j++ {
+										time.Sleep(time.Second * 1)
+										if err = wd.KeyDown(selenium.PageUpKey); err != nil {
+											fmt.Println(err.Error())
+										}
+									}
+
+									// 关闭Session2，回到Session1
+									if err = wd.Quit(); err != nil {
+										fmt.Println("quit 2 session failure: ", err.Error())
+									} else {
+										switchSessionErr := wd.SwitchSession(beforeSessionId)
+										if switchSessionErr != nil {
+											fmt.Println("switchBeforeSessionErr", switchSessionErr.Error())
+										}
+									}
+									for j := 0; j < 4; j++ {
+										time.Sleep(time.Second * 1)
+										if err = wd.KeyDown(selenium.PageUpKey); err != nil {
+											fmt.Println(err.Error())
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			} else {
+				// 找到了footer节点
+				footerText, footerErr := footer.FindElement(selenium.ByXPATH, "div/div/div[1]/span")
+				if footerText == nil || footerErr != nil {
+					fmt.Println("get footer text failure")
+				}
+				if footerText != nil {
+					if footerTextName, footerTextErr := footerText.Text(); footerTextErr != nil {
+						fmt.Println("get resource title failure, ", footerTextErr.Error())
+					} else {
+						fmt.Println("resource footer title: ", footerTextName)
+
+						// 检查名称是否需要过滤
+						if err = article.Click(); err != nil {
+							fmt.Println(err.Error())
+						}
+
+						time.Sleep(time.Second * 3)
+						winHandlers, err := wd.WindowHandles()
+						if err != nil {
+							fmt.Println(err.Error())
+						}
+						fmt.Println("winHandlers: ", winHandlers)
+						currentUrl, err := wd.CurrentURL()
+						fmt.Printf("before currnetUrl: %s\n", currentUrl)
+						if len(winHandlers) > 1 {
+							// 切换到新窗口
+							_ = wd.SwitchWindow(winHandlers[1])
+
+							currentUrl, err = wd.CurrentURL()
+							fmt.Printf("after currnetUrl: %s\n", currentUrl)
+							// 窗口2上下滑动
+							if err = wd.KeyDown(selenium.EndKey); err != nil {
+								fmt.Println(err.Error())
+							}
+							for j := 0; j < 4; j++ {
+								time.Sleep(time.Second * 1)
+								if err = wd.KeyDown(selenium.PageUpKey); err != nil {
+									fmt.Println(err.Error())
+								}
+							}
+
+							// 关闭窗口2，回到窗口1
+							if err = wd.CloseWindow(winHandlers[1]); err != nil {
+								fmt.Println(err.Error())
+							}
+							_ = wd.SwitchWindow(winHandlers[0])
+							for j := 0; j < 4; j++ {
+								time.Sleep(time.Second * 1)
+								if err = wd.KeyDown(selenium.PageUpKey); err != nil {
+									fmt.Println(err.Error())
+								}
+							}
+						} else {
+							fmt.Println("未打开窗口2")
+						}
+					}
+				}
+			}
 		}
 	}
 }

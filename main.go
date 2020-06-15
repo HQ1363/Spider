@@ -24,16 +24,38 @@ func runSeleniumCrawler() {
 			debug.PrintStack()
 		}
 	}()
-	go StartLoopCrawler(startCrawler)
+	go StartLoopCrawler(startCrawler, "pc")
 	for {
 		select {
 		case run := <- startCrawler:
 			if run {
-				fmt.Println("crawler run success")
+				fmt.Println("crawler pc run success")
 			} else {
-				fmt.Println("crawler run failure")
+				fmt.Println("crawler pc run failure")
 			}
-			go StartLoopCrawler(startCrawler)
+			go StartLoopCrawler(startCrawler, "pc")
+		}
+	}
+}
+
+func runSeleniumCrawlerMobile() {
+	// example 2
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Println("some error has occurred, info: ", r)
+			debug.PrintStack()
+		}
+	}()
+	go StartLoopCrawler(startCrawler, "mobile")
+	for {
+		select {
+		case run := <- startCrawler:
+			if run {
+				fmt.Println("crawler mobile run success")
+			} else {
+				fmt.Println("crawler mobile run failure")
+			}
+			go StartLoopCrawler(startCrawler, "mobile")
 		}
 	}
 }
@@ -45,5 +67,6 @@ func runCollyCrawler() {
 
 func main()  {
 	//runSeleniumCrawler()
-	runCollyCrawler()
+	runSeleniumCrawlerMobile()
+	//runCollyCrawler()
 }
