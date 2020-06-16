@@ -7,5 +7,6 @@ import (
 
 func TestExample2(t *testing.T) {
 	// 爬房源信息
-	StartLoopCrawler()
+	var startCrawler chan bool
+	StartLoopCrawler(startCrawler, "pc")
 }
