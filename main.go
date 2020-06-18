@@ -44,7 +44,7 @@ func GreetWord() {
 		extend = fmt.Sprintf("%s", BoldGreen("快点干完, 早点下班 (＾－＾)V"))
 	case hour > 19 && hour <= 23:
 		greet = fmt.Sprintf("%s", BoldMagenta("晚上好"))
-		extend = fmt.Sprintf("%s", BoldGreen("大晚上的还在在忙活, 你就是满帮的顶梁柱 ╮(￣▽￣)╭"))
+		extend = fmt.Sprintf("%s", BoldGreen("大晚上的还在在忙活, 你就是家庭的顶梁柱 ╮(￣▽￣)╭"))
 	}
 	Shell.Println(strings.Repeat("#", len(greet+username+extend)-45))
 	Shell.Println(greet, username, extend)

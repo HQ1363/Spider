@@ -12,6 +12,7 @@ require (
 	github.com/fatih/color v1.9.0 // indirect
 	github.com/flynn-archive/go-shlex v0.0.0-20150515145356-3f9db97f8568 // indirect
 	github.com/gocolly/colly/v2 v2.0.1
+	github.com/jinzhu/gorm v1.9.13 // indirect
 	github.com/tebeka/selenium v0.9.9
 	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
 	gopkg.in/gomail.v2 v2.0.0-20160411212932-81ebce5c23df

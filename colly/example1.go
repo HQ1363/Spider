@@ -6,6 +6,7 @@ import (
 	"github.com/gocolly/colly/v2"
 	"github.com/gocolly/colly/v2/debug"
 	_ "github.com/gocolly/colly/v2/proxy"
+	"github.com/jinzhu/gorm"
 	"log"
 	_ "log"
 	"math/rand"
@@ -23,6 +24,13 @@ func ConvertToString(src string, srcCode string, tagCode string) string {
 	_, cdata, _ := tagCoder.Translate([]byte(srcResult), true)
 	result := string(cdata)
 	return result
+}
+
+type PageAddrStruct struct {
+	gorm.Model
+	Name         string
+	Address      string  `gorm:"index:addr"` // 给address字段创建名为addr的索引
+	PageContent  string  `gorm:"type:text"`
 }
 
 // colly + goquery 爬虫利器
