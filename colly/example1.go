@@ -28,9 +28,13 @@ func ConvertToString(src string, srcCode string, tagCode string) string {
 
 type PageAddrStruct struct {
 	gorm.Model
-	Name         string
-	Address      string  `gorm:"index:addr"` // 给address字段创建名为addr的索引
-	PageContent  string  `gorm:"type:text"`
+	Name         string  `gorm:"type:varchar(2048);column:name"`
+	Address      string  `gorm:"index:addr;column:address"` // 给address字段创建名为addr的索引
+	PageContent  string  `gorm:"type:mediumtext;column:page_content"`  // 存放整个网页信息
+}
+
+func (PageAddrStruct) TableName() string {
+	return "WebHtmlPage"
 }
 
 // colly + goquery 爬虫利器
